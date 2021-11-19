@@ -4,6 +4,11 @@ using UnityEngine;
 
 public class PlayerBehaviour : MonoBehaviour
 {
+    [Header("Touch Input")] 
+    public Joystick joystick;
+    [Range(0.01f, 1.0f)]
+    public float sensitivity;
+    
     [Header("Movement")] 
     public float horizontalForce;
     public float verticalForce;
@@ -36,13 +41,13 @@ public class PlayerBehaviour : MonoBehaviour
 
     private void Move()
     {
-        float x = Input.GetAxisRaw("Horizontal");
+        float x = (Input.GetAxisRaw("Horizontal") + joystick.Horizontal) * sensitivity ;
 
         if (isGrounded)
         {
             // Keyboard Input
-            float y = Input.GetAxisRaw("Vertical");
-            float jump = Input.GetAxisRaw("Jump");
+            float y = (Input.GetAxisRaw("Vertical") + joystick.Vertical) * sensitivity;
+            float jump = Input.GetAxisRaw("Jump") + ((UIController.jumpButtonDown) ? 1.0f : 0.0f);
 
             // Check for Flip
 
@@ -56,13 +61,6 @@ public class PlayerBehaviour : MonoBehaviour
             {
                 animatorController.SetInteger("AnimationState", (int)PlayerAnimationState.IDLE); // IDLE State
                 state = PlayerAnimationState.IDLE;
-            }
-            
-            // Touch Input
-            Vector2 worldTouch = new Vector2();
-            foreach (var touch in Input.touches)
-            {
-                worldTouch = Camera.main.ScreenToWorldPoint(touch.position);
             }
 
             float horizontalMoveForce = x * horizontalForce;
@@ -108,14 +106,7 @@ public class PlayerBehaviour : MonoBehaviour
         return x;
     }
 
-
-    // UTILITIES
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(groundOrigin.position, groundRadius);
-    }
+    // EVENTS
 
     private void OnCollisionEnter2D(Collision2D other)
     {
@@ -131,6 +122,14 @@ public class PlayerBehaviour : MonoBehaviour
         {
             transform.SetParent(null);
         }
+    }
+
+    // UTILITIES
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(groundOrigin.position, groundRadius);
     }
 
 }
